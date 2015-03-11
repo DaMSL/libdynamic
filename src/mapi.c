@@ -58,6 +58,8 @@ void mapi_empty_key(mapi *m, uint32_t k) { m->empty_key = k; }
 
 void mapi_release(mapi *m, void (*release)(void *)) { m->release = release; }
 
+void mapi_clone(mapi *m, void (*clone)(void *, void *, size_t)) { m->clone = clone; }
+
 void mapi_free(mapi *m) {
   mapi_clear(m);
   free(m);
@@ -110,7 +112,7 @@ int mapi_insert(mapi *m, void *o) {
 
   mo = mapi_super(mapi_at(m, mapi_super(o)->key));
   if (mo->key == m->empty_key) {
-    memcpy(mo, o, m->object_size);
+    m->clone(mo, o, m->object_size);
     m->size++;
   } else {
     if (m->release) m->release(o);
@@ -137,7 +139,7 @@ void mapi_erase(mapi *m, uint32_t k) {
 
     w = mapi_super(mapi_get(m, i->key & (m->capacity - 1)));
     if ((i > o && (w <= o || w > i)) || (i < o && (w <= o && w > i))) {
-      memcpy(o, i, m->object_size);
+      m->clone(o, i, m->object_size);
       o = i;
     }
   }
@@ -175,6 +177,7 @@ int mapi_rehash(mapi *m, size_t c) {
     mapi_init(&nm, m->object_size);
     mapi_empty_key(&nm, m->empty_key);
     mapi_release(&nm, m->release);
+    mapi_clone(&nm, m->clone);
 
     nm.capacity = c;
     nm.objects =

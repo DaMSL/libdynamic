@@ -32,6 +32,10 @@ void map_str_release(map_str *map, void (*release)(char *, void *)) {
   map->release = release;
 }
 
+void map_str_clone(map_str *map, void (*clone)(void *, void *, size_t)) {
+  map->clone = clone;
+}
+
 void map_str_free(map_str *map) {
   map_str_clear(map);
   free(map);
@@ -50,7 +54,7 @@ void *map_str_get(map_str *map, size_t position) {
 void map_str_put(map_str *map, size_t position, char *key, void *value) {
   if (map->keys[position] == MAP_STR_RESERVED_DELETED) map->deleted--;
   map->keys[position] = key;
-  memcpy(map_str_get(map, position), value, map->value_size);
+  map->clone(map_str_get(map, position), value, map->value_size);
   map->size++;
 }
 
@@ -229,8 +233,8 @@ void *map_str_data_offset(void *data, size_t offset) {
 // to this address.
 // We assume the key is stored directly at the value offset (i.e.,
 // as the first element of the key-value data item).
-void map_str_stabilize_key(map_str* map, size_t position) {
+void map_str_stabilize_key(map_str* map, size_t position, char* key) {
   if (map->keys[position] > MAP_STR_RESERVED_DELETED) {
-    map->keys[position] = map_str_get(map, position);
+    map->keys[position] = key;
   }
 }

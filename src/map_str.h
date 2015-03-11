@@ -21,12 +21,14 @@ struct map_str
   size_t           watermark;
   double           max_load_factor;
   void           (*release)(char *, void *);
+  void           (*clone)(void *, void *, size_t);
 };
 
 /* allocators */
 map_str           *map_str_new(size_t);
 void               map_str_init(map_str *, size_t);
 void               map_str_release(map_str *, void (*)(char *, void *));
+void               map_str_clone(map_str *, void (*)(void*, void*, size_t));
 void               map_str_free(map_str *);
 
 /* capacity */
@@ -63,5 +65,5 @@ size_t             map_str_find_free(map_str *, char *);
 size_t             map_str_next_inclusive(map_str *, size_t);
 size_t             map_str_roundup_size(size_t);
 void              *map_str_data_offset(void *, size_t);
-void               map_str_stabilize_key(map_str *, size_t);
+void               map_str_stabilize_key(map_str *, size_t, char *);
 #endif /* MAP_STR_H_INCLUDED */
