@@ -103,22 +103,23 @@ void *mapi_find(mapi *m, uint32_t k) {
 
 /* modifiers */
 
-int mapi_insert(mapi *m, void *o) {
+void *mapi_insert(mapi *m, void *o) {
   mapi_object *mo;
   int e;
 
   e = mapi_reserve(m, m->size + 1);
-  if (e == -1) return -1;
+  if (e == -1) return NULL;
 
   mo = mapi_super(mapi_at(m, mapi_super(o)->key));
   if (mo->key == m->empty_key) {
     m->clone(mo, o, m->object_size);
     m->size++;
+    return mo;
   } else {
     if (m->release) m->release(o);
   }
 
-  return 0;
+  return NULL;
 }
 
 void mapi_erase(mapi *m, uint32_t k) {
