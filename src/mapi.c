@@ -38,6 +38,17 @@ static size_t mapi_roundup_size(size_t s) {
   return s;
 }
 
+/* do hash */
+uint32_t hash(uint32_t a) {
+    a = (a+0x7ed55d16) + (a<<12);
+    a = (a^0xc761c23c) ^ (a>>19);
+    a = (a+0x165667b1) + (a<<5);
+    a = (a+0xd3a2646c) ^ (a<<9);
+    a = (a+0xfd7046c5) + (a<<3);
+    a = (a^0xb55a4f09) ^ (a>>16);
+    return a;
+}
+
 /* allocators */
 
 mapi *mapi_new(size_t s) {
@@ -80,7 +91,8 @@ void *mapi_get(mapi *m, size_t p) {
 }
 
 void *mapi_at(mapi *m, uint32_t k) {
-  size_t p = k;
+  uint32_t hk = hash(k);
+  size_t p = hk;
   mapi_object *o;
 
   if (m->capacity == 0) return NULL;
